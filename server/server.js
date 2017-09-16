@@ -8,6 +8,8 @@ const {User} = require('./models/user');
 
 let app = express();
 
+let port = process.env.PORT || 3000;
+
 app.use(bodyParser.json());
 
 // app.use((req, res, next)=>{
@@ -58,8 +60,30 @@ app.get('/todos/:id', (req, res)=> {
     }
 });
 
-app.listen(3000, ()=>{
-  console.log('Todo Web Server started on port 3000!');
+app.delete('/todos/:id', (req, res) => {
+  let id = req.params.id;
+
+  if(ObjectId.isValid(id))
+  {
+    Todo.findByIdAndRemove(id).then((todo) => {
+      if(todo)
+      {
+        res.send({todo});
+      }
+      else {
+        res.status(404).send('Unable to find Todo with id = ' + id);
+      }
+    }, (err) => {
+      res.status(404).send(err);
+    }).catch((e) => console.log(e))
+  }
+  else{
+    res.status(404).send('Invalid Id - wrong format');
+  }
+})
+
+app.listen(port, ()=>{
+  console.log('Todo Web Server started on port ', port);
 });
 
 module.exports = {app}
