@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectId} = require('mongodb');
+const _ = require('lodash');
 
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todos');
@@ -81,6 +82,37 @@ app.delete('/todos/:id', (req, res) => {
     res.status(404).send('Invalid Id - wrong format');
   }
 })
+
+app.patch('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let body = _.pick(req.body, ['text', 'completed']);
+
+  if(ObjectId.isValid(id))
+  {
+    if(_.isBoolean(body.completed) && body.completed)
+    {
+      body.completedAt = new Date().getTime();
+    }
+    else{
+      body.completed = false;
+      body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+      if(todo){
+        res.send({todo});
+      }
+      else {
+        res.status(404).send('Unable to find Todo with id = ' + id);
+      }
+    }, (err) => {
+      res.status(404).send(err);
+    }).catch((e)=> console.log(e))
+  }
+  else{
+    res.status(404).send('Invalid Id - wrong format');
+  }
+});
 
 app.listen(port, ()=>{
   console.log('Todo Web Server started on port ', port);
