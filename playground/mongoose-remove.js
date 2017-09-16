@@ -14,8 +14,8 @@ const userId = '59bc73c17fcaa416d47f0514';
 // })
 
 
-// Todo.findOneAndRemove({}).then((doc) => {
-//   console.log(doc);
+// Todo.findOneAndRemove({_id: 'IdToBeRemoved'}).then((deletedDoc) => {
+//   console.log(deletedDoc);
 // })
 
 Todo.findByIdAndRemove('IdToRemove').then((deletedDoc)=>{
