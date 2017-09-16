@@ -54,7 +54,7 @@ app.get('/todos/:id', (req, res)=> {
       }).catch((e) => console.log(e))
     }
     else{
-      res.status(400).send('Invalid Id - wrong format');
+      res.status(404).send('Invalid Id - wrong format');
     }
 });
 
