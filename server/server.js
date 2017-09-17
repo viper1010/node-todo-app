@@ -117,10 +117,12 @@ app.patch('/todos/:id', (req, res) => {
   }
 });
 
+// Saves users to the Database
 app.post('/users', (req, res) =>{
   let body = _.pick(req.body, ['email', 'password']);
 
-  let user = new User(body);
+  let user = new User(body);  // This gives user the _id property and value
+  console.log('USER -- ', user);
   let token = user.generateAuthToken();
 
   user.save().then((doc)=>{

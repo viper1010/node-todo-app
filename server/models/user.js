@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
+
+const secretKeyForJWT = 'abc123';
 
 let UserSchema = new mongoose.Schema({
   email:{
@@ -45,7 +48,7 @@ UserSchema.methods.toJSON = function(){
 UserSchema.methods.generateAuthToken = function(){
   let user = this;
   let access = 'auth';
-  let token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
+  let token = jwt.sign({_id: user._id.toHexString(), access}, secretKeyForJWT).toString();
 
   user.tokens.push({access, token});
   return token;
@@ -54,13 +57,13 @@ UserSchema.methods.generateAuthToken = function(){
   // })
 }
 
-// MODEL METHODS
+// MODEL (Static or Class level) METHODS
 UserSchema.statics.findByToken = function(token) {
   let User = this;   // this === the model
   let decoded;
 
   try{
-    decoded = jwt.verify(token, 'abc123');
+    decoded = jwt.verify(token, secretKeyForJWT);
   }
   catch(e){
     return Promise.reject();
@@ -70,9 +73,25 @@ UserSchema.statics.findByToken = function(token) {
     '_id': decoded._id,
     'tokens.token': token,
     'tokens.access':'auth'
-  })
+  });
 }
 
+UserSchema.pre('save', function (next) {
+  let user = this;
+  let hashedPassword;
+
+  if(user.isModified('password')) {
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) =>{
+        user.password = hash;
+        next();
+      })
+    });
+  }
+  else{
+    next();
+  }
+});
 
 let User = mongoose.model('User', UserSchema);
 
